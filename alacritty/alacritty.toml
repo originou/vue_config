@@ -1,0 +1,34 @@
+# Alacritty >= 0.14 (not the Debian 12 apt one, which reads alacritty.yml).
+# Same settings as alacritty.yml.
+
+[colors.primary]
+background = "#040404"
+foreground = "#c5c8c6"
+
+[font]
+size = 10
+[font.normal]
+family = "Hack Nerd Font"
+style = "Regular"
+
+# Every new window starts its own tmux session, ended with its window; plain zsh if tmux fails
+[terminal.shell]
+program = "/bin/zsh"
+args = ["-l", "-c", "env -u TMUX tmux new-session \\; set-option destroy-unattached on || exec zsh -i"]
+
+[selection]
+save_to_clipboard = true
+
+[window]
+decorations = "Full"
+opacity = 0.85
+
+[window.padding]
+x = 0
+y = 0
+
+# Ctrl+Backspace sends DEL, not C-h (tmux would take it as select-pane -L)
+[keyboard]
+bindings = [
+  { key = "Back", mods = "Control", chars = "\u007f" }
+]

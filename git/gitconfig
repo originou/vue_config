@@ -1,0 +1,96 @@
+# Shared git settings and aliases. Included from ~/.gitconfig by install.sh; set your identity
+# there: git config --global user.name ... / user.email ...
+[core]
+        editor = nvim
+        autocrlf = input
+[color]
+        status = auto
+        branch = auto
+        diff = auto
+        interactive = auto
+        grep = auto
+[alias]
+        # Some shortcuts.
+        st = status
+        ci = commit
+        co = checkout
+        cfg = config
+        # Branch.
+        br = branch
+        bra = branch -a
+        # Fetch.
+        f = fetch
+        fa = fetch --all
+        # Remote.
+        r = remote
+        # Log.
+        l = log -C --stat
+        lp = log -C --stat --ignore-space-change -p
+        # Diff only the local change not yet added into the index.
+        dif = diff -C -w
+        # Similar to dif but with word-diff.
+        difw = diff -C --ignore-space-change --word-diff=color
+        # Diff only the change added into the index.
+        difi = diff -C --cached --ignore-space-change
+        # Similar to difi but with word-diff.
+        difiw = diff -C --ignore-space-change --cached --word-diff=color
+        # Make a diff applyable with patch -p0
+        diffp = diff --no-color -p --no-prefix --no-renames
+        # Current branch
+        cbr = !"f() { git branch --no-color | sed -ne '/^\\* */s///p'; }; f"
+        # Remote upstream.
+        rup = !"f() { b=`git cbr` && git config --get branch.$b.remote; }; f"
+        # Upstream branch.
+        ubr = !"f() { b=`git cbr` && r=`git rup` && rb=`git config --get branch.$b.merge` && echo $r/${rb#refs/heads/}; }; f"
+        # Diff and log between the origin server and the local current branch.
+        rdiff = !"f() { b=`git cbr` && u=`git ubr` && git dif $u..$b; }; f"
+        rlog = !"f() { b=`git cbr` && u=`git ubr` && git log $u..$b; }; f"
+        rlogp = !"f() { b=`git cbr` && u=`git ubr` && git log -p $u..$b; }; f"
+        # Diff and log between the local current branch and the origin server.
+        ndiff = !"f() { b=`git cbr` && u=`git ubr` && git dif $b..$u; }; f"
+        nlog = !"f() { b=`git cbr` && u=`git ubr` && git log $b..$u; }; f"
+        nlogp = !"f() { b=`git cbr` && u=`git ubr` && git log -p $b..$u; }; f"
+        # Push only the current branch on the origin server.
+        pushc = !"f() { b=`git cbr` && r=`git rup` && git push $r $b; }; f"
+        pushfc = !"f() { b=`git cbr` && r=`git rup` && git push -f $r $b; }; f"
+        # push current branch on origin
+        mr = push -u origin HEAD
+        # Submodules.
+        sm = submodule
+        # Initialize and update submodules recursively.
+        smup = submodule update --init --recursive
+        # Recursive status of the submodules.
+        smst = submodule status --recursive
+[help]
+        format = man
+[branch]
+        autosetuprebase = always
+[rebase]
+        autosquash = true
+        # Uncommitted changes stashed before a rebase (pull included), restored after
+        autoStash = true
+[pull]
+        # git pull = fetch + rebase of the local commits on top: no merge commit (merge.ff = false
+        # below would add one on every pull otherwise)
+        rebase = true
+[fetch]
+        recurseSubmodules = on-demand
+[push]
+        default = nothing
+[merge]
+        # Use --ff if your really want your merge to be fast-forward.
+        ff = false
+        # Use --no-log if you really don't want the log to be part of the
+        # commit message.
+        log = 100000
+	tool = vimdiff
+[mergetool]
+        prompt = false
+        keepTemporaries = false
+        keepBackup = true
+[diff]
+        renames = copies
+        ignoreSubmodules = none
+	tool = vimdiff
+[difftool]
+        prompt = false

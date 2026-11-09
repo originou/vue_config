@@ -1,0 +1,55 @@
+# apt packages for Debian 12 (bookworm), one per line: "package  # what for".
+# Read by the opencode prompt (OPENCODE_PROMPT.md). Lines starting with "?" are optional.
+
+# --- Desktop (i3 session)
+i3-wm                 # window manager (with i3 and its i3-msg / i3-nagbar)
+i3lock                # Alt+Shift+L
+polybar               # top bar
+rofi                  # launcher and menus
+picom                 # compositor (rounded corners, shadows)
+dunst                 # notifications
+libnotify-bin         # notify-send
+feh                   # wallpaper
+x11-xserver-utils     # xrdb, xset
+x11-xkb-utils         # setxkbmap
+xclip                 # clipboard (screenshots, nvim)
+maim                  # Alt+Shift+S region screenshot
+pulseaudio-utils      # pactl (volume keys), works with pipewire-pulse too
+? pulsemixer          # polybar volume right click
+fontconfig            # fc-cache for the Nerd Fonts
+
+# --- Terminal
+alacritty             # 0.11 on bookworm: reads alacritty.yml
+tmux
+zsh
+bc                    # tmux.conf version checks
+tree                  # tmux-sidebar
+psmisc                # killall (polybar launch.sh)
+
+# --- CLI tools
+git
+curl
+wget
+ca-certificates
+unzip
+xz-utils              # Nerd Fonts archives, Mason
+tar
+gzip
+jq                    # i3 helper scripts
+fzf                   # zsh history search, tmux session picker, telescope
+ripgrep               # nvim grep / telescope
+fd-find               # telescope (binary fdfind, install.sh links ~/.local/bin/fd)
+bat                   # previews (binary batcat, install.sh links ~/.local/bin/bat)
+zoxide
+btop                  # polybar cpu / memory click
+ncdu                  # polybar disk click
+
+# --- Neovim build / Mason needs (neovim itself: NOT the apt 0.7, see OPENCODE_PROMPT.md)
+build-essential       # gcc, make: treesitter parsers, telescope-fzf-native
+python3-venv          # Mason python tools
+python3-pip
+nodejs                # Mason LSPs (bookworm: 18; Copilot wants a newer one, see prompt)
+npm
+? luarocks            # some lazy.nvim plugins with rockspecs
+? openjdk-17-jdk      # Java (jdtls itself wants 21+: see prompt)
+? golang              # bookworm 1.19, gopls wants newer: see prompt

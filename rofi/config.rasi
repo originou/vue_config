@@ -1,0 +1,12 @@
+// Symlinked to ~/.config/rofi/config.rasi: rofi-theme-selector writes here (it follows the link).
+// It writes the theme as an absolute /nix/store path, which breaks on rofi updates:
+// replace it with the short name, e.g. @theme "material".
+
+configuration {
+  // A single click picks the entry (default: the click only selects it, a fast double click
+  // accepts it): every rofi menu (launcher, polybar menus, Win+Shift+A...)
+  me-select-entry: "";
+  me-accept-entry: "MousePrimary";
+}
+
+@theme "material"

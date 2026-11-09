@@ -1,0 +1,62 @@
+/* Small popup menus opened from polybar (Catppuccin Mocha, matches the bar pills).
+ * Usage: rofi -dmenu -theme ~/.config/polybar/menu.rasi [-theme-str "listview { lines: N; }"] */
+
+* {
+    base:    #1e1e2e;
+    surface: #313244;
+    text:    #cdd6f4;
+    accent:  #89b4fa;
+    crust:   #11111b;
+
+    font:             "JetBrainsMono Nerd Font Medium 11";
+    background-color: transparent;
+    text-color:       @text;
+}
+
+window {
+    width:            340px;
+    padding:          8px;
+    border:           2px;
+    border-color:     @surface;
+    border-radius:    14px;
+    background-color: @base;
+    /* -monitor -3 places the window at the mouse: top-left corner there, a bit below the click */
+    location:         north west;
+    anchor:           north west;
+    x-offset:         -20px;
+    y-offset:         14px;
+}
+
+mainbox {
+    children: [ listview ];
+}
+
+listview {
+    lines:     4;
+    dynamic:   true;
+    scrollbar: false;
+    spacing:   4px;
+    cycle:     true;
+}
+
+element {
+    padding:       8px 12px;
+    border-radius: 10px;
+}
+
+element normal.normal,
+element alternate.normal {
+    background-color: transparent;
+    text-color:       @text;
+}
+
+element selected.normal {
+    background-color: @accent;
+    text-color:       @crust;
+}
+
+element-text {
+    background-color: inherit;
+    text-color:       inherit;
+    vertical-align:   0.5;
+}

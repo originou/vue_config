@@ -1,0 +1,20 @@
+# dunst, sized for a 1080p screen.
+[global]
+    follow = keyboard
+    font = Monospace 11
+    width = (300, 500)
+    offset = (15, 45)
+    padding = 10
+    horizontal_padding = 14
+    frame_width = 2
+    corner_radius = 8
+    max_icon_size = 48
+    mouse_left_click = do_action, close_current
+    show_age_threshold = 0
+
+[clickable]
+    category = "x-action"
+    background = "#fab387"
+    foreground = "#1e1e2e"
+    frame_color = "#fe640b"
+    timeout = 15s
