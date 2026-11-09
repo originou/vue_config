@@ -142,7 +142,10 @@ exec_always --no-startup-id bash ~/.config/i3/focus-last.sh
 exec_always --no-startup-id ~/.config/i3/wallpaper.sh
 exec --no-startup-id picom
 exec --no-startup-id dunst
-exec --no-startup-id setxkbmap -option caps:none
+# Caps Lock = an extra Super key (Win stays Super): Caps+hjkl reaches i3 while Windows (Citrix
+# host) keeps Win+L for its lock screen. -option '' clears the previous options first.
+# exec_always: re-applied on i3 restart (a Citrix reconnect may reset the keyboard options)
+exec_always --no-startup-id setxkbmap -option '' -option caps:super
 
 # Look: thin border on tiled windows, title bar + 8 px border on floating ones
 default_border pixel 1
