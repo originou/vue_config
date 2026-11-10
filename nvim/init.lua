@@ -1,32 +1,27 @@
--- References to ./lua/
-vim.env.NVIM_LOG_LEVEL = "debug"
-vim.opt.termguicolors = true
+-- This file simply bootstraps the installation of Lazy.nvim and then calls other files for execution
+-- This file doesn't necessarily need to be touched, BE CAUTIOUS editing this file and proceed at your own risk.
+local lazypath = vim.env.LAZY or vim.fn.stdpath "data" .. "/lazy/lazy.nvim"
 
--- Function to reload the config
-function _G.reload_config()
-  for name, _ in pairs(package.loaded) do
-    if name:match("^user_config") then
-      package.loaded[name] = nil
-    end
+if not (vim.env.LAZY or (vim.uv or vim.loop).fs_stat(lazypath)) then
+  -- stylua: ignore
+  local result = vim.fn.system({ "git", "clone", "--filter=blob:none", "https://github.com/folke/lazy.nvim.git", "--branch=stable", lazypath })
+  if vim.v.shell_error ~= 0 then
+    -- stylua: ignore
+    vim.api.nvim_echo({ { ("Error cloning lazy.nvim:\n%s\n"):format(result), "ErrorMsg" }, { "Press any key to exit...", "MoreMsg" } }, true, {})
+    vim.fn.getchar()
+    vim.cmd.quit()
   end
-  dofile(vim.fn.stdpath("config") .. "/init.lua")
-  print("Configuration reloaded!")
 end
 
--- Create a command to reload the config
-vim.api.nvim_create_user_command("ReloadConfig", "lua _G.reload_config()", {})
+vim.opt.rtp:prepend(lazypath)
 
--- Load global functions
-require("core.globals")
--- Plugin management via lazy
-require("core.lazy")
--- Plugin management via Packer
--- require("core.packer")
--- "Global" Keymappings
-require("core.mappings")
--- All non plugin related (vim) options
-require("core.options")
--- Vim autocommands/autogroups
-require("core.autocmd")
--- Stream deck Neovim profile: X class "nvim" on the terminal while focused
-require("core.deck")
+-- validate that lazy is available
+if not pcall(require, "lazy") then
+  -- stylua: ignore
+  vim.api.nvim_echo({ { ("Unable to load lazy from: %s\n"):format(lazypath), "ErrorMsg" }, { "Press any key to exit...", "MoreMsg" } }, true, {})
+  vim.fn.getchar()
+  vim.cmd.quit()
+end
+
+require "lazy_setup"
+require "polish"

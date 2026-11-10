@@ -1,0 +1,318 @@
+-- which-key popups: fewer entries and clearer descriptions.
+--
+-- Hidden entries still work when typed, they are only left out of the popup. Nothing is hidden
+-- under <Leader> or gr: there, a key missing from the popup is blocked (see which-key.lua).
+-- real = true: the description only shows when the keymap exists (LSP, git and debugger keys are
+-- set per buffer, only when an LSP server / a git repo / the debugger is there).
+
+-- Built-in Vim commands and duplicates left out of the popups
+local hidden = {
+  -- g: case toggle, word-end motion, change list, search-select, tab pages (]t / [t), marks
+  "g~", "g%", "ge", "g,", "g;", "gn", "gN", "gw", "gt", "gT", "g'", "g`",
+  -- z: rare fold and horizontal scroll commands
+  "z<CR>", "zA", "zC", "zD", "zE", "ze", "zs", "zH", "zL", "zi", "zm", "zr", "zO", "zv", "zx",
+  -- <C-w>: resize (Ctrl + arrows do it), diagnostics (gl does it)
+  "<C-W>_", "<C-W>|", "<C-W>+", "<C-W>-", "<C-W><", "<C-W>>", "<C-W>d", "<C-W><C-D>",
+}
+-- [ and ]: brackets, location list, tags, args, first/last, ends of functions/methods/blocks
+for _, k in ipairs({ "(", "{", "%", "<", "<C-L>", "<C-Q>", "<C-T>", "a", "A", "B", "D", "G", "i", "k", "K", "l", "L", "Q", "F", "M", "Y" }) do
+  vim.list_extend(hidden, { "[" .. k, "]" .. k })
+end
+
+local spec = {
+  { mode = { "n", "x" }, vim.tbl_map(function(k) return { k, hidden = true } end, hidden) },
+
+  -- g ---------------------------------------------------------------------------------------
+  { "g", group = "Go to (LSP), comments, case" },
+  { "gg", desc = "First line of the file", mode = { "n", "x" } },
+  { "gf", desc = "Open the file whose path is under the cursor" },
+  { "gx", desc = "Open the link / path under the cursor (browser, app)", mode = { "n", "x" } },
+  { "gi", desc = "Back to the last edit position, in insert mode" },
+  { "gv", desc = "Select again the last selection" },
+  { "gu", desc = "lowercase (+ motion: guiw = word, gugu = line)" },
+  { "gU", desc = "UPPERCASE (+ motion: gUiw = word, gUgU = line)" },
+  { "gu", desc = "lowercase the selection", mode = "x" },
+  { "gU", desc = "UPPERCASE the selection", mode = "x" },
+  { "gc", group = "Comment (gcc = line, gc + motion)" },
+  { "gc", desc = "Comment / uncomment the selection", mode = "x" },
+  { "gcc", desc = "Comment / uncomment this line" },
+  { "gco", desc = "New comment line below", real = true },
+  { "gcO", desc = "New comment line above", real = true },
+  {
+    real = true,
+    { "gd", desc = "Go to definition" },
+    { "gD", desc = "Go to declaration" },
+    { "gy", desc = "Go to the definition of its type" },
+    { "gI", desc = "Go to implementations (of an interface / method)" },
+    { "gK", desc = "Function signature (parameters)" },
+    { "gl", desc = "Diagnostic of this line (error, warning)" },
+    { "gO", desc = "Symbols of this file (functions, types, vars)" },
+  },
+  { "gr", group = "LSP: uses, rename, fixes", mode = { "n", "x" } },
+  {
+    real = true,
+    { "grr", desc = "Where this symbol is used (references)" },
+    { "grn", desc = "Rename this symbol everywhere" },
+    { "gra", desc = "Code actions / quick fixes", mode = { "n", "x" } },
+    { "gri", desc = "Go to implementations" },
+    { "grt", desc = "Go to the definition of its type" },
+  },
+
+  -- z ---------------------------------------------------------------------------------------
+  { "z", group = "Folds, scroll, spelling" },
+  { "za", desc = "Fold: open / close here" },
+  { "zo", desc = "Fold: open here" },
+  { "zc", desc = "Fold: close here" },
+  { "zR", desc = "Fold: open all" },
+  { "zM", desc = "Fold: close all" },
+  { "zf", desc = "Fold: create (+ motion, or on the selection)", mode = { "n", "x" } },
+  { "zd", desc = "Fold: delete here" },
+  { "zz", desc = "Scroll: this line to the middle" },
+  { "zt", desc = "Scroll: this line to the top" },
+  { "zb", desc = "Scroll: this line to the bottom" },
+  { "z=", desc = "Spelling: suggestions for this word" },
+  { "zg", desc = "Spelling: add this word to the dictionary" },
+  { "zw", desc = "Spelling: mark this word as wrong" },
+
+  -- [ and ] -----------------------------------------------------------------------------------
+  { "[", group = "Previous…", mode = { "n", "x" } },
+  { "]", group = "Next…", mode = { "n", "x" } },
+  { "[s", desc = "Previous spelling mistake" },
+  { "]s", desc = "Next spelling mistake" },
+  {
+    real = true,
+    { "[b", desc = "Previous buffer (tab)" },
+    { "]b", desc = "Next buffer (tab)" },
+    { "[t", desc = "Previous tab page" },
+    { "]t", desc = "Next tab page" },
+    { "[d", desc = "Previous diagnostic" },
+    { "]d", desc = "Next diagnostic" },
+    { "[e", desc = "Previous error" },
+    { "]e", desc = "Next error" },
+    { "[w", desc = "Previous warning" },
+    { "]w", desc = "Next warning" },
+    { "[g", desc = "Previous git change (hunk)" },
+    { "]g", desc = "Next git change (hunk)" },
+    { "[r", desc = "Previous use of this symbol" },
+    { "]r", desc = "Next use of this symbol" },
+    { "[q", desc = "Previous quickfix item" },
+    { "]q", desc = "Next quickfix item" },
+    { "[T", desc = "Previous TODO comment" },
+    { "]T", desc = "Next TODO comment" },
+    { "[y", desc = "Previous symbol (outline)" },
+    { "]y", desc = "Next symbol (outline)" },
+    { "[<Space>", desc = "Add a blank line above" },
+    { "]<Space>", desc = "Add a blank line below" },
+    { mode = { "n", "x" }, { "[f", desc = "Previous function" }, { "]f", desc = "Next function" } },
+    { "[m", desc = "Previous method" },
+    { "]m", desc = "Next method" },
+  },
+
+  -- <C-w> ------------------------------------------------------------------------------------
+  { "<C-W>", group = "Windows (splits)", mode = { "n", "x" } },
+  {
+    mode = { "n", "x" },
+    { "<C-W>h", desc = "Go to the window on the left" },
+    { "<C-W>j", desc = "Go to the window below" },
+    { "<C-W>k", desc = "Go to the window above" },
+    { "<C-W>l", desc = "Go to the window on the right" },
+    { "<C-W>w", desc = "Go to the next window" },
+    { "<C-W>s", desc = "Split: new window below" },
+    { "<C-W>v", desc = "Split: new window on the right" },
+    { "<C-W>q", desc = "Close this window" },
+    { "<C-W>o", desc = "Close all other windows" },
+    { "<C-W>=", desc = "Same size for all windows" },
+    { "<C-W>x", desc = "Swap with the next window" },
+    { "<C-W>T", desc = "Move this window to a new tab page" },
+    { "<C-W>H", desc = "Move this window to the far left" },
+    { "<C-W>J", desc = "Move this window to the bottom" },
+    { "<C-W>K", desc = "Move this window to the top" },
+    { "<C-W>L", desc = "Move this window to the far right" },
+  },
+
+  -- <Leader> (groups keep AstroNvim's names and icons) -----------------------------------------
+  {
+    real = true,
+    { "<Leader>w", desc = "Save the file" },
+    { "<Leader>c", desc = "Close this buffer" },
+    { "<Leader>C", desc = "Close this buffer, drop its changes" },
+    { "<Leader>q", desc = "Close this window" },
+    { "<Leader>Q", desc = "Quit Neovim" },
+    { "<Leader>n", desc = "New empty file" },
+    { "<Leader>R", desc = "Rename this file" },
+    { "<Leader>e", desc = "File explorer: show / hide" },
+    { "<Leader>o", desc = "File explorer: go to it / back" },
+    { "<Leader>h", desc = "Home screen" },
+    { "<Leader>/", desc = "Comment / uncomment this line" },
+    { "<Leader>/", desc = "Comment / uncomment the selection", mode = "x" },
+
+    -- buffers
+    { "<Leader>bb", desc = "Go to a buffer (pick its letter)" },
+    { "<Leader>bp", desc = "Previous buffer (last used)" },
+    { "<Leader>bd", desc = "Close a buffer (pick its letter)" },
+    { "<Leader>bc", desc = "Close all other buffers" },
+    { "<Leader>bC", desc = "Close all buffers" },
+    { "<Leader>bl", desc = "List of the open buffers (Ctrl-x closes one)" },
+    { "<Leader>bh", desc = "Close the buffers on the left" },
+    { "<Leader>br", desc = "Close the buffers on the right" },
+    { "<Leader>b\\", desc = "Open a buffer in a split below (pick)" },
+    { "<Leader>b|", desc = "Open a buffer in a split on the right (pick)" },
+    { "<Leader>bse", desc = "Sort tabs by extension" },
+    { "<Leader>bsr", desc = "Sort tabs by relative path" },
+    { "<Leader>bsp", desc = "Sort tabs by full path" },
+    { "<Leader>bsi", desc = "Sort tabs by buffer number" },
+    { "<Leader>bsm", desc = "Sort tabs by last modification" },
+
+    -- debugger
+    { "<Leader>dc", desc = "Start / continue (F5)" },
+    { "<Leader>db", desc = "Breakpoint on / off (F9)" },
+    { "<Leader>dC", desc = "Breakpoint with a condition (Shift-F9)" },
+    { "<Leader>dB", desc = "Remove all breakpoints" },
+    { "<Leader>do", desc = "Step over: next line (F10)" },
+    { "<Leader>di", desc = "Step into the function (F11)" },
+    { "<Leader>dO", desc = "Step out of the function (Shift-F11)" },
+    { "<Leader>ds", desc = "Run to the cursor" },
+    { "<Leader>dp", desc = "Pause (F6)" },
+    { "<Leader>dr", desc = "Restart (Ctrl-F5)" },
+    { "<Leader>dq", desc = "Close the debug session" },
+    { "<Leader>dQ", desc = "Stop the program (Shift-F5)" },
+    { "<Leader>dh", desc = "Value under the cursor" },
+    { "<Leader>dE", desc = "Evaluate an expression" },
+    { "<Leader>dE", desc = "Evaluate the selection", mode = "x" },
+    { "<Leader>dR", desc = "REPL console: show / hide" },
+    { "<Leader>du", desc = "Debugger panels: show / hide" },
+
+    -- find
+    { "<Leader>ff", desc = "Files of the project" },
+    { "<Leader>fF", desc = "Files, hidden and git-ignored ones too" },
+    { "<Leader>fg", desc = "Files tracked by git" },
+    { "<Leader>fo", desc = "Recent files" },
+    { "<Leader>fO", desc = "Recent files of this project" },
+    { "<Leader>fs", desc = "Buffers, recent and project files" },
+    { "<Leader>fb", desc = "Open buffers" },
+    { "<Leader>fw", desc = "Text in the project (grep)" },
+    { "<Leader>fW", desc = "Text, hidden and git-ignored files too" },
+    { "<Leader>fc", desc = "Word under the cursor in the project" },
+    { "<Leader>fl", desc = "Lines of this buffer" },
+    { "<Leader>fp", desc = "Projects, then their sessions" },
+    { "<Leader>fT", desc = "TODO comments" },
+    { "<Leader>f'", desc = "Marks" },
+    { "<Leader>fr", desc = "Registers (yanked text)" },
+    { "<Leader>fu", desc = "Undo history" },
+    { "<Leader>fn", desc = "Notification history" },
+    { "<Leader>fk", desc = "Keymaps" },
+    { "<Leader>fC", desc = "Commands" },
+    { "<Leader>fh", desc = "Help pages" },
+    { "<Leader>fm", desc = "Man pages" },
+    { "<Leader>ft", desc = "Color themes" },
+    { "<Leader>fa", desc = "AstroNvim config files" },
+    { "<Leader>f<CR>", desc = "Resume the last search" },
+
+    -- git
+    { "<Leader>gg", desc = "Lazygit" },
+    { "<Leader>gt", desc = "Status: changed files" },
+    { "<Leader>gb", desc = "Branches (switch)" },
+    { "<Leader>gc", desc = "Commits of the repository" },
+    { "<Leader>gC", desc = "Commits of this file" },
+    { "<Leader>gT", desc = "Stashes" },
+    { "<Leader>gd", desc = "Diff of this file" },
+    { "<Leader>gp", desc = "Preview this change (hunk)" },
+    { "<Leader>gs", desc = "Stage / unstage this change (hunk)" },
+    { "<Leader>gs", desc = "Stage the selected lines", mode = "x" },
+    { "<Leader>gS", desc = "Stage the whole file" },
+    { "<Leader>gr", desc = "Undo this change (hunk)" },
+    { "<Leader>gr", desc = "Undo the selected lines", mode = "x" },
+    { "<Leader>gR", desc = "Undo all changes of the file" },
+    { "<Leader>gl", desc = "Blame: who changed this line" },
+    { "<Leader>gL", desc = "Blame: this line's full commit" },
+    { "<Leader>go", desc = "Open in the browser (Forgejo, GitHub)", mode = { "n", "x" } },
+
+    -- language (LSP)
+    { "<Leader>la", desc = "Code actions / quick fixes", mode = { "n", "x" } },
+    { "<Leader>lA", desc = "Source actions (whole file: imports…)" },
+    { "<Leader>lr", desc = "Rename this symbol everywhere" },
+    { "<Leader>lR", desc = "Where this symbol is used (references)" },
+    { "<Leader>ls", desc = "Symbols of this file (search)" },
+    { "<Leader>lG", desc = "Symbols of the project (search)" },
+    { "<Leader>lS", desc = "Symbols outline (side panel)" },
+    { "<Leader>lh", desc = "Function signature (parameters)" },
+    { "<Leader>ld", desc = "Diagnostic of this line" },
+    { "<Leader>lD", desc = "All diagnostics (list)" },
+    { "<Leader>lf", desc = "Format the file" },
+    { "<Leader>lf", desc = "Format the selection", mode = "x" },
+    { "<Leader>ll", desc = "CodeLens: refresh" },
+    { "<Leader>lL", desc = "CodeLens: run" },
+    { "<Leader>li", desc = "LSP servers: status / health" },
+    { "<Leader>lI", desc = "none-ls (formatters, linters): status" },
+
+    -- packages
+    { "<Leader>pa", desc = "Update everything (plugins + Mason)" },
+    { "<Leader>ps", desc = "Plugins: status (Lazy)" },
+    { "<Leader>pi", desc = "Plugins: install the missing ones" },
+    { "<Leader>pu", desc = "Plugins: check for updates" },
+    { "<Leader>pU", desc = "Plugins: update" },
+    { "<Leader>pS", desc = "Plugins: sync (install, update, clean)" },
+    { "<Leader>pm", desc = "Mason: install LSP servers / tools" },
+    { "<Leader>pM", desc = "Mason: update tools" },
+
+    -- sessions
+    { "<Leader>Sp", desc = "Sessions of this project" },
+    { "<Leader>Sm", desc = "Session manager (open, rename, delete)" },
+    { "<Leader>Sl", desc = "Load the last session" },
+    { "<Leader>S.", desc = "Load this folder's session" },
+    { "<Leader>Ss", desc = "Save as a named session of this project" },
+    { "<Leader>SS", desc = "Save this session now" },
+    { "<Leader>Sf", desc = "Session manager (open, rename, delete)" },
+    { "<Leader>Sd", desc = "Session manager (open, rename, delete)" },
+
+    -- terminal
+    { "<Leader>tf", desc = "Floating terminal" },
+    { "<Leader>th", desc = "Terminal below" },
+    { "<Leader>tv", desc = "Terminal on the right" },
+    { "<Leader>tl", desc = "Lazygit" },
+    { "<Leader>tn", desc = "Node REPL" },
+    { "<Leader>tp", desc = "Python REPL" },
+    { "<Leader>tt", desc = "btm (system monitor)" },
+
+    -- UI
+    { "<Leader>ub", desc = "Background: dark / light" },
+    { "<Leader>un", desc = "Line numbers: cycle the modes" },
+    { "<Leader>uw", desc = "Line wrap: on / off" },
+    { "<Leader>us", desc = "Spell check: on / off" },
+    { "<Leader>ud", desc = "Diagnostics: on / off" },
+    { "<Leader>uv", desc = "Diagnostics as text at line end: on / off" },
+    { "<Leader>uV", desc = "Diagnostics under the lines: on / off" },
+    { "<Leader>ur", desc = "Highlight uses of the symbol: on / off" },
+    { "<Leader>uc", desc = "Completion: on / off (this buffer)" },
+    { "<Leader>uC", desc = "Completion: on / off (everywhere)" },
+    { "<Leader>ua", desc = "Auto-close brackets: on / off" },
+    { "<Leader>ui", desc = "Indentation: tabs / spaces, width" },
+    { "<Leader>u|", desc = "Indent guides: on / off" },
+    { "<Leader>u>", desc = "Fold column: on / off" },
+    { "<Leader>ug", desc = "Sign column: on / off" },
+    { "<Leader>ul", desc = "Status line: on / off" },
+    { "<Leader>ut", desc = "Tab line: on / off" },
+    { "<Leader>uS", desc = "Conceal: on / off" },
+    { "<Leader>uu", desc = "URL highlight: on / off" },
+    { "<Leader>uz", desc = "Color codes preview: on / off" },
+    { "<Leader>uy", desc = "Syntax highlight: on / off (this buffer)" },
+    { "<Leader>up", desc = "Paste mode: on / off" },
+    { "<Leader>uA", desc = "Auto cd to the project root: on / off" },
+    { "<Leader>uN", desc = "Notifications: on / off" },
+    { "<Leader>uD", desc = "Dismiss the notifications" },
+    { "<Leader>uZ", desc = "Zen mode" },
+
+    -- lists
+    { "<Leader>xq", desc = "Quickfix list" },
+    { "<Leader>xl", desc = "Location list" },
+  },
+}
+
+---@type LazySpec
+return {
+  "folke/which-key.nvim",
+  opts = function(_, opts)
+    opts.spec = opts.spec or {}
+    table.insert(opts.spec, spec)
+  end,
+}

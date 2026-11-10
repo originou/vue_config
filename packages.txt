@@ -48,7 +48,7 @@ ncdu                  # polybar disk click
 build-essential       # gcc, make: treesitter parsers, telescope-fzf-native
 python3-venv          # Mason python tools
 python3-pip
-nodejs                # Mason LSPs (bookworm: 18; Copilot wants a newer one, see prompt)
+nodejs                # Mason LSPs (bookworm: 18, a newer one: see prompt)
 npm
 ? luarocks            # some lazy.nvim plugins with rockspecs
 ? openjdk-17-jdk      # Java (jdtls itself wants 21+: see prompt)

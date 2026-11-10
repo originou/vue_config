@@ -32,11 +32,11 @@ me what you propose, wait for my OK. Install them in my home, without sudo:
 release archive of the official GitHub project (or nodejs.org) → ~/.local/opt/<tool>,
 symlinks in ~/.local/bin. Pick the asset for the arch of step 1, verify the checksum when the
 release publishes one.
-- Neovim >= 0.11 (bookworm apt has 0.7, too old for my config: lazy.nvim, LSP). First check
+- Neovim >= 0.11 (bookworm apt has 0.7, too old for my config: AstroNvim v6). First check
   if the mirror has a recent enough candidate (backports...); otherwise the latest stable
   release archive nvim-linux-<arch>.tar.gz of github.com/neovim/neovim.
 - lazygit (not in bookworm): latest release of github.com/jesseduffield/lazygit.
-- Node.js >= 22 if the apt candidate is older (copilot.lua needs it): latest LTS archive of
+- Node.js >= 22 if the apt candidate is older (language servers installed by Mason): latest LTS archive of
   nodejs.org → ~/.local/opt/node, links for node, npm, npx.
 - Do not install anything for Java / Go / Python development: just report the versions found
   (jdtls wants Java 21+, gopls a recent Go). I will deal with it later.
@@ -48,8 +48,9 @@ Step 4. Dotfiles
 
 Step 5. Checks, report each result
 - `which nvim && nvim --version | head -1` (must be the ~/.local/bin one, >= 0.11)
-- `nvim --headless "+Lazy! sync" +qa` (plugins install; then Mason installs its tools on the
-  first real start: tell me to wait for it and to run :checkhealth)
+- `nvim --headless "+Lazy! sync" +qa` (plugins install; then Mason installs ~25 tools on the
+  first real start: tell me to wait for it (`:Mason` shows the progress) and to run
+  :checkhealth; gopls and jdtls fail to install without a recent Go / Java 21+: expected)
 - `i3 -C -c ~/.config/i3/config`
 - `fc-list | grep -ci "nerd font"` (> 0)
 - `alacritty --version` (0.11 reads alacritty.yml: expected)
