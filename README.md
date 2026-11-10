@@ -22,7 +22,7 @@ juste les liens). Identité git ensuite :
 |---|---|---|
 | tmux | `~/.tmux.conf` | préfixe Alt+w, TPM (resurrect, continuum, menus F9, suspend F12), thème nord, prefix s = sélecteur de sessions fzf |
 | alacritty | `~/.config/alacritty/alacritty.{yml,toml}` | `.yml` pour la 0.11 d'apt, `.toml` pour une version récente ; chaque fenêtre ouvre sa session tmux |
-| neovim | `~/.config/nvim` | AstroNvim v6 : sessions par projet, statusline façon LazyVim, which-key épuré, Neo-tree (diff `gd`)… ; LSP et outils via Mason (voir `nvim/README.md`) |
+| neovim | `~/.config/nvim` | AstroNvim v6 : sessions par projet, statusline façon LazyVim (état git), which-key épuré, Neo-tree (diff `gd`), favoris de lignes, undo persistant, requêtes HTTP (kulala)… ; LSP et outils via Mason (voir `nvim/README.md`) |
 | i3 | `~/.config/i3/` | config + scripts (move-dir, float-toggle, focus-last Super+Tab, minimize Super+-, popups, wallpaper) |
 | polybar | `~/.config/polybar/` | une barre : workspaces, fenêtre, scratchpad, cpu, mémoire, disque, volume, réseau, date, power |
 | rofi | `~/.config/rofi/config.rasi` | thème material |

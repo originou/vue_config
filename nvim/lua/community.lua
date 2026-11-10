@@ -11,5 +11,6 @@ return {
   { import = "astrocommunity.pack.bash" },
   { import = "astrocommunity.pack.typescript" },
   -- quickfix list (references, ...) with a floating preview of the line under the cursor
+  { import = "astrocommunity.programming-language-support.kulala-nvim" }, -- .http files: HTTP requests (<Leader>r)
   { import = "astrocommunity.quickfix.nvim-bqf" },
 }

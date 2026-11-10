@@ -14,6 +14,29 @@
 -- (toggle_node), so <Leader>… did nothing from the tree.
 --
 -- q no longer closes the tree: only <Leader>e (toggle). q does nothing there (see keymaps.lua).
+--
+-- One tree for all tab pages (as an IDE sidebar): a Neovim window belongs to one tab page, so the
+-- tree open in a tab page is shown again (without the focus) when entering another one, and
+-- closing it closes it everywhere. The tabline already starts right of the tree.
+
+local tree_open = false -- the tree is open (last opened / closed from a tab page)
+
+local function tree_win()
+  for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+    if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "neo-tree" and vim.api.nvim_win_get_config(win).relative == "" then
+      return win
+    end
+  end
+end
+
+local function sync_tab()
+  local win = tree_win()
+  if tree_open and not win then
+    vim.cmd("Neotree show")
+  elseif not tree_open and win then
+    vim.cmd("Neotree close")
+  end
+end
 
 local COLUMNS = { file_size = true, type = true, last_modified = true, created = true }
 local columns_shown = false
@@ -57,6 +80,10 @@ return {
     opts.window.mappings["q"] = { toggle_columns, desc = "Columns (size, type, dates): show / hide" }
     opts.event_handlers = opts.event_handlers or {}
     table.insert(opts.event_handlers, { event = "before_render", handler = function(state) set_columns(state, columns_shown) end })
+    -- floating trees (Neotree float) do not count
+    local function sidebar(args) return not (args and args.winid and vim.api.nvim_win_is_valid(args.winid) and vim.api.nvim_win_get_config(args.winid).relative ~= "") end
+    table.insert(opts.event_handlers, { event = "neo_tree_window_after_open", handler = function(args) if sidebar(args) then tree_open = true end end })
+    table.insert(opts.event_handlers, { event = "neo_tree_window_after_close", handler = function(args) if sidebar(args) then tree_open = false end end })
 
     -- Z: the opposite of z (collapse all): expand the folder under the cursor and all its sub-folders
     opts.window.mappings["Z"] = "expand_all_subnodes"
@@ -80,5 +107,11 @@ return {
       end
       return confirm(message, callback)
     end
+
+    vim.api.nvim_create_autocmd("TabEnter", {
+      group = vim.api.nvim_create_augroup("neotree_all_tabs", { clear = true }),
+      desc = "Show / hide the tree as in the tab page left",
+      callback = function() vim.schedule(sync_tab) end,
+    })
   end,
 }

@@ -34,6 +34,91 @@ local function statusline_path(bufnr)
   return rel
 end
 
+-- Repository state for the statusline: branch, whether there are changes, and the lines added (+)
+-- / removed (-) over the whole repository (`git diff --numstat HEAD`, plus the lines of the
+-- untracked files). Runs in the background, cached per repository; refreshed on save, buffer /
+-- focus change, after a terminal (lazygit) and every 10 s.
+local repos = {} -- root -> { branch, dirty, added, removed, running, at }
+
+local function repo_root()
+  local name = vim.api.nvim_buf_get_name(0)
+  local dir = (name ~= "" and vim.bo.buftype == "" and not name:match("^%a[%w+.-]*://")) and vim.fs.dirname(name) or vim.uv.cwd()
+  return dir and git_root(dir)
+end
+
+-- lines of a text file (untracked files: at most 1 MB each, binary files ignored)
+local function count_lines(path)
+  local f = io.open(path, "rb")
+  if not f then return 0 end
+  local data = f:read(1024 * 1024) or ""
+  f:close()
+  if data:find("\0", 1, true) then return 0 end
+  local _, n = data:gsub("\n", "")
+  if #data > 0 and data:sub(-1) ~= "\n" then n = n + 1 end
+  return n
+end
+
+local function refresh_repo(root)
+  if not root then return end
+  local r = repos[root] or {}
+  repos[root] = r
+  if r.running or (r.at and vim.uv.now() - r.at < 1000) then return end
+  r.running = true
+  vim.system({ "git", "-C", root, "status", "--porcelain=v1", "--branch", "--untracked-files=all" }, { text = true }, function(st)
+    if st.code ~= 0 then r.running = false; return end
+    local branch, dirty, untracked = nil, false, {}
+    for line in (st.stdout or ""):gmatch("[^\n]+") do
+      if line:sub(1, 2) == "##" then
+        local head = line:sub(4)
+        branch = head:match("^No commits yet on (.+)$") or head:match("^(.-)%.%.%.") or head:match("^(%S+)")
+        if head:match("^HEAD %(no branch%)") then branch = "detached" end
+      else
+        dirty = true
+        if line:sub(1, 2) == "??" and #untracked < 500 then table.insert(untracked, (line:sub(4):gsub('^"(.*)"$', "%1"))) end
+      end
+    end
+    vim.system({ "git", "-C", root, "diff", "--numstat", "HEAD" }, { text = true }, function(df)
+      local added, removed = 0, 0
+      if df.code == 0 then
+        for a, d in (df.stdout or ""):gmatch("(%S+)\t(%S+)\t[^\n]*") do
+          added, removed = added + (tonumber(a) or 0), removed + (tonumber(d) or 0)
+        end
+      end
+      for _, path in ipairs(untracked) do
+        added = added + count_lines(root .. "/" .. path)
+      end
+      r.branch, r.dirty, r.added, r.removed = branch, dirty, added, removed
+      r.running, r.at = false, vim.uv.now()
+      vim.schedule(function() vim.cmd.redrawstatus() end)
+    end)
+  end)
+end
+
+local function repo_state()
+  local root = repo_root()
+  if not root then return end
+  local r = repos[root]
+  if not r then refresh_repo(root) end
+  return r and r.branch and r or nil
+end
+
+local function dirty(r) return r.dirty end
+
+-- dark text on the green / yellow background: the editor background
+local function dark_fg() return string.format("#%06x", vim.api.nvim_get_hl(0, { name = "Normal", link = false }).bg or 0) end
+
+vim.api.nvim_create_autocmd({ "BufWritePost", "BufEnter", "FocusGained", "TermClose", "TermLeave", "DirChanged" }, {
+  group = vim.api.nvim_create_augroup("statusline_git", { clear = true }),
+  callback = function() refresh_repo(repo_root()) end,
+})
+vim.api.nvim_create_autocmd("User", {
+  group = "statusline_git",
+  pattern = { "GitSignsUpdate", "GitSignsChanged" },
+  callback = function() refresh_repo(repo_root()) end,
+})
+local git_timer = vim.uv.new_timer()
+if git_timer then git_timer:start(10000, 10000, vim.schedule_wrap(function() refresh_repo(repo_root()) end)) end
+
 local function bar_bg(amount)
   local color = vim.api.nvim_get_hl(0, { name = "Normal", link = false }).bg or 0
   local function up(c) return math.floor(c + (255 - c) * amount) end
@@ -113,7 +198,56 @@ return {
           hl = { bold = true },
           surround = { separator = "pl_left" },
         }),
-        status.component.git_branch({ padding = { left = 1, right = 1 }, surround = { separator = "pl_left" } }),
+        -- git: branch on a green background when the repository is clean, git yellow with changes,
+        -- then the lines added (+) / removed (-) over the repository. Left click: lazygit
+        status.component.builder({
+          {
+            provider = function()
+              local r = repo_state()
+              return r and (require("astroui").get_icon("GitBranch", 1, true) .. r.branch)
+            end,
+            hl = function() return { fg = dark_fg(), bold = true } end,
+          },
+          on_click = {
+            name = "heirline_git_repo",
+            callback = function() vim.schedule(function() require("snacks").lazygit() end) end,
+          },
+          padding = { left = 1, right = 1 },
+          surround = {
+            separator = "pl_left",
+            color = function()
+              local r = repo_state()
+              return (r and dirty(r)) and "git_changed" or "git_added"
+            end,
+            condition = function() return repo_state() ~= nil end,
+          },
+        }),
+        -- lines added / removed over the repository, next to the branch: dark text on a green (+) /
+        -- red (-) background, shown when not 0
+        status.component.builder({
+          { provider = function() return "+" .. repo_state().added end, hl = function() return { fg = dark_fg(), bold = true } end },
+          padding = { left = 1, right = 1 },
+          surround = {
+            separator = "pl_left",
+            color = "git_added",
+            condition = function()
+              local r = repo_state()
+              return r and dirty(r) and r.added > 0
+            end,
+          },
+        }),
+        status.component.builder({
+          { provider = function() return "-" .. repo_state().removed end, hl = function() return { fg = dark_fg(), bold = true } end },
+          padding = { left = 1, right = 1 },
+          surround = {
+            separator = "pl_left",
+            color = "git_removed",
+            condition = function()
+              local r = repo_state()
+              return r and dirty(r) and r.removed > 0
+            end,
+          },
+        }),
         -- file path relative to its git repository root (else to the current folder, else ~/…)
         status.component.file_info({ filename = { fname = statusline_path, modify = "" }, filetype = false }),
         status.component.git_diff(),
