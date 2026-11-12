@@ -21,8 +21,14 @@ then Mason installs the language servers and tools (`:Mason` to follow, `:checkh
   - `bookmarks.lua`: line bookmarks (icon in the sign column, optional name, numbers 1-4 for
     `<Space>1`…`4`), list per project `<Space>mm` (`Ctrl-e` rename, `Ctrl-x` remove, `Alt-1…4` number)
   - `undo.lua`: persistent undo (1000 changes per file, histories unused for 90 days deleted)
-  - `kulala.lua`: kulala pinned to v5.3.4 (later versions need a licensed backend); `<Space>rI`
-    converts an OpenAPI spec / Postman collection to a `.http` file (kulala-fmt, built with npm)
+  - `kulala.lua`: kulala pinned to v5.3.4 (later versions need a licensed backend). Enter sends
+    the request under the cursor; a JSON response is formatted with jq, saved to
+    `~/.local/share/nvim/http-responses/<project>/<date>_<time>_<METHOD>_<path>.json` and shown
+    under the kulala result; each run is listed under its request (status, ms, file),
+    `<Space>rJ` picks one, `<Space>rH` = history of all saved responses (kept 90 days)
+  - `httpyac.lua`: httpyac CLI next to kulala (`npm install -g httpyac`), keys `<Space>rh…`;
+    `<Space>rI` converts an OpenAPI spec / Postman collection to a `.http` file (kulala-fmt
+    through npx)
   - `schemastore.lua`: SchemaStore schemas for yamlls / jsonls: completion and validation of
     OpenAPI specs (`openapi.yaml`, `*.openapi.yaml`), GitHub Actions, docker-compose...
   - `formatting.lua`: no format on save (`<Space>lf` formats, `<Space>uF` turns it back on)

@@ -38,6 +38,8 @@ release publishes one.
 - lazygit (not in bookworm): latest release of github.com/jesseduffield/lazygit.
 - Node.js >= 22 if the apt candidate is older (language servers installed by Mason): latest LTS archive of
   nodejs.org → ~/.local/opt/node, links for node, npm, npx.
+- httpyac (HTTP requests of .http files from Neovim, next to kulala): `npm install -g httpyac`
+  once Node.js >= 22 is there (the global prefix must be in my home: no sudo).
 - Do not install anything for Java / Go / Python development: just report the versions found
   (jdtls wants Java 21+, gopls a recent Go). I will deal with it later.
 
@@ -56,7 +58,7 @@ Step 5. Checks, report each result
 - `alacritty --version` (0.11 reads alacritty.yml: expected)
 - `tmux -f ~/.tmux.conf start-server \; kill-server` without error, TPM plugins present in
   ~/.tmux/plugins
-- `node --version`, `lazygit --version`, `rg --version`, `fd --version`
+- `node --version`, `lazygit --version`, `rg --version`, `fd --version`, `httpyac --version`, `jq --version`
 
 Step 6. Final report
 - What was installed (apt and ~/.local), what failed and why, what is missing from the mirror.

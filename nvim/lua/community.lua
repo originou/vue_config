@@ -13,7 +13,7 @@ return {
   -- yaml / json: yamlls / jsonls with the SchemaStore schemas (OpenAPI, GitHub Actions, k8s...)
   { import = "astrocommunity.pack.yaml" },
   { import = "astrocommunity.pack.json" },
-  { import = "astrocommunity.programming-language-support.kulala-nvim" }, -- .http files: HTTP requests (<Leader>r)
+  { import = "astrocommunity.programming-language-support.kulala-nvim" }, -- .http files: HTTP requests (Enter, <Leader>r)
   -- quickfix list (references, ...) with a floating preview of the line under the cursor
   { import = "astrocommunity.quickfix.nvim-bqf" },
 }
